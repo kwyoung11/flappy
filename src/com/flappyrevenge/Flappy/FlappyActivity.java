@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.RelativeLayout;
@@ -55,8 +56,7 @@ public class FlappyActivity extends Activity {
 
 		// Pipes.
 		private final Bitmap mPipeTop, mPipeBody;
-		private final int mPipeTopWidth, mPipeTopHeight, mPipeBodyWidth;
-		private int mPipeBodyHeight;
+		private final int mPipeTopWidth, mPipeTopHeight, mPipeBodyWidth, mPipeBodyHeight = 1;
 		private static final float pipeTopScreenRatio = 5.5f;
 		private static final float pipeBodyScreenRatio = 6f;
 
@@ -112,13 +112,7 @@ public class FlappyActivity extends Activity {
 			mPipeTopHeight = pipeTopOriginalHeight * mPipeTopWidth / pipeTopOriginalWidth;
 			this.mPipeTop = Bitmap.createScaledBitmap(pipeTop, mPipeTopWidth, mPipeTopHeight, false);
 
-			int pipeBodyOriginalWidth = (int) getResources().getDimension(R.dimen.pipe_body_width);
-			int pipeBodyOriginalHeight = (int) getResources().getDimension(R.dimen.pipe_body_height);
 			mPipeBodyWidth = Math.round(mDisplayWidth / pipeBodyScreenRatio);
-			mPipeBodyHeight = pipeBodyOriginalHeight * mPipeBodyWidth / pipeBodyOriginalWidth;
-			if (mPipeBodyHeight == 0) {
-				mPipeBodyHeight = 1;
-			}
 			this.mPipeBody = Bitmap.createScaledBitmap(pipeBody, mPipeBodyWidth, mPipeBodyHeight, false);
 
 			Random r = new Random();
@@ -148,7 +142,14 @@ public class FlappyActivity extends Activity {
 			canvas.drawBitmap(mBackground, 0, mDisplayHeight - mBackgroundHeight, mPainter);
 
 			// Draw pipes
-			canvas.drawBitmap(mPipeTop, 0, 0, mPainter);
+			Random random = new Random();
+			int randomX = random.nextInt() % mDisplayWidth;
+			int randomY = random.nextInt() % (mDisplayHeight/3) + 1;
+			canvas.drawBitmap(mPipeTop, randomX, mDisplayHeight - (mPipeTopHeight + randomY), mPainter);
+			int offset = (mPipeTopWidth - mPipeBodyWidth) / 2;
+			Log.i("flappy", "randomY = " + randomY);
+			Bitmap randomBody = Bitmap.createScaledBitmap(this.mPipeBody, mPipeBodyWidth, randomY, false);
+			canvas.drawBitmap(randomBody, randomX + offset, mDisplayHeight - (randomY), mPainter);
 
 			// Draw bird.
 			mRotation += ROT_STEP;
