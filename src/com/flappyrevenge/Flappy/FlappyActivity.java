@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.RelativeLayout;
@@ -28,7 +29,7 @@ public class FlappyActivity extends Activity {
 		final FlappyView bubbleView = new FlappyView(getApplicationContext(),
 				BitmapFactory.decodeResource(getResources(), R.drawable.bird),
 				BitmapFactory.decodeResource(getResources(), R.drawable.background_bottom),
-				BitmapFactory.decodeResource(getResources(), R.drawable.pipe_top),
+				BitmapFactory.decodeResource(getResources(), R.drawable.pipe_rim),
 				BitmapFactory.decodeResource(getResources(), R.drawable.pipe_body));
 
 		relativeLayout.addView(bubbleView);
@@ -50,27 +51,33 @@ public class FlappyActivity extends Activity {
 			SurfaceHolder.Callback {
 
 		// Background.
-		private final Bitmap mBackground;
-		private final int mBackgroundHeight;
-
+		private final Bitmap background;
+		private final int backgroundHeight, sandY;
+		
+		private final int flappyX;
+    private int flappyY;
+    private int flappyV;
+    private final int flappyG = 1;
+		
 		// Pipes.
-		private final Bitmap mPipeTop, mPipeBody;
-		private final int mPipeTopWidth, mPipeTopHeight, mPipeBodyWidth, mPipeBodyHeight = 1;
-		private static final float pipeTopScreenRatio = 5.5f;
+		private final Bitmap pipeRim, pipeBody;
+		private final int pipeRimWidth, pipeRimHeight, pipeBodyWidth, pipeBodyHeight = 1;
+		private static final float pipeRimScreenRatio = 5.5f;
 		private static final float pipeBodyScreenRatio = 6f;
+	  private static final float pipeGapScreenRatio = 5f;
 		private static final int pace = 8;
 		private int pipe1X, pipe2X, pipe1Y, pipe2Y;
 
 		// Flappy.
-		private final Bitmap mFlappy;
-		private final int mFlappyHeightAndWidth, mFlappyHeightAndWidthAdj;
+		private final Bitmap flappy;
+		private final int flappyHeight, flappyWidth;
 
 		// Display.
-		private final DisplayMetrics mDisplay;
-		private final int mDisplayWidth, mDisplayHeight;
+		private final DisplayMetrics display;
+		private final int displayWidth, displayHeight;
 		private float mX, mY, mDx, mDy, mRotation;
-		private final SurfaceHolder mSurfaceHolder;
-		private final Paint mPainter = new Paint();
+		private final SurfaceHolder surfaceHolder;
+		private final Paint painter = new Paint();
 
 		// Inside your SurfaceView class is also a good place to define your
 		// secondary Thread class, which will perform all the drawing procedures
@@ -83,117 +90,151 @@ public class FlappyActivity extends Activity {
 		int mod(int a, int b) {
 			return (a % b + b) % b;
 		}
+		
+		@Override
+    public boolean onTouchEvent(MotionEvent event) { 
+		 flappyY -= displayHeight / 10;
+		 flappyV = 1;
+		 return false;
+		}
 
-		public FlappyView(Context context, Bitmap bitmap, Bitmap background, Bitmap pipeTop,
-				Bitmap pipeBody) {
-			super(context);
-
-			// Flappy.
-			mFlappyHeightAndWidth = (int) getResources().getDimension(
-					R.dimen.image_height);
-			this.mFlappy = Bitmap.createScaledBitmap(bitmap,
-					mFlappyHeightAndWidth, mFlappyHeightAndWidth, false);
-
-			mFlappyHeightAndWidthAdj = mFlappyHeightAndWidth / 2;
-
+		public FlappyView(Context contextIn, Bitmap bitmapIn, Bitmap backgroundIn, Bitmap pipeRimIn,
+				Bitmap pipeBodyIn) {
+			super(contextIn);
+			
 			// Display.
-			mDisplay = new DisplayMetrics();
-			FlappyActivity.this.getWindowManager().getDefaultDisplay()
-					.getMetrics(mDisplay);
-			mDisplayWidth = mDisplay.widthPixels;
-			mDisplayHeight = mDisplay.heightPixels;
+      display = new DisplayMetrics();
+      FlappyActivity.this.getWindowManager().getDefaultDisplay()
+          .getMetrics(display);
+      displayWidth = display.widthPixels;
+      displayHeight = display.heightPixels;
+      
+			// Flappy.
+      int flappyOriginalWidth = (int) getResources().getDimension(R.dimen.flappy_width);
+			int flappyOriginalHeight = (int) getResources().getDimension(R.dimen.flappy_height);
+			flappyWidth = displayWidth / 9;
+			flappyHeight = flappyOriginalHeight * flappyWidth / flappyOriginalWidth;
+			flappy = Bitmap.createScaledBitmap(bitmapIn,
+					flappyWidth, flappyHeight, false);
+			flappyX = displayWidth/4;
+			flappyY = displayHeight/2;
+			flappyV = 0;
 
 			// Background image scaling.
 			int bgOriginalWidth = (int) getResources().getDimension(R.dimen.background_width);
 			int bgOriginalHeight = (int) getResources().getDimension(R.dimen.background_height);
-			mBackgroundHeight = bgOriginalHeight * mDisplayWidth / bgOriginalWidth;
-			this.mBackground = Bitmap.createScaledBitmap(background,
-					mDisplayWidth, mBackgroundHeight, false);
+			int bgSandHeight = (int) getResources().getDimension(R.dimen.sand_height);
+			backgroundHeight = bgOriginalHeight * displayWidth / bgOriginalWidth;
+			background = Bitmap.createScaledBitmap(backgroundIn,
+					displayWidth, backgroundHeight, false);
+			int sandHeight = bgSandHeight * displayWidth / bgOriginalWidth;
+			sandY = displayHeight - sandHeight;
 
-			// Pipes.
+			// Pipes - Bottom.
 			int pipeTopOriginalWidth = (int) getResources().getDimension(R.dimen.pipe_top_width);
 			int pipeTopOriginalHeight = (int) getResources().getDimension(R.dimen.pipe_top_height);
-			mPipeTopWidth = Math.round(mDisplayWidth / pipeTopScreenRatio);
-			mPipeTopHeight = pipeTopOriginalHeight * mPipeTopWidth / pipeTopOriginalWidth;
-			this.mPipeTop = Bitmap.createScaledBitmap(pipeTop, mPipeTopWidth, mPipeTopHeight, false);
+			pipeRimWidth = Math.round(displayWidth / pipeRimScreenRatio);
+			pipeRimHeight = pipeTopOriginalHeight * pipeRimWidth / pipeTopOriginalWidth;
+			pipeRim = Bitmap.createScaledBitmap(pipeRimIn, pipeRimWidth, pipeRimHeight, false);
 
-			mPipeBodyWidth = Math.round(mDisplayWidth / pipeBodyScreenRatio);
-			this.mPipeBody = Bitmap.createScaledBitmap(pipeBody, mPipeBodyWidth, mPipeBodyHeight, false);
+			pipeBodyWidth = Math.round(displayWidth / pipeBodyScreenRatio);
+			pipeBody = Bitmap.createScaledBitmap(pipeBodyIn, pipeBodyWidth, pipeBodyHeight, false);
 
+			// Pipes - Top.
+
+			
 			// Pipe X's.
-			pipe1X = mDisplayWidth;
-			pipe2X = mDisplayWidth + (mDisplayWidth + mPipeTopWidth) / 2;
+			pipe1X = displayWidth;
+			pipe2X = displayWidth + (displayWidth + pipeRimWidth) / 2;
 
 			Random r = new Random();
-			mX = r.nextInt(mDisplayHeight);
-			mY = r.nextInt(mDisplayWidth);
-			mDx = (float) r.nextInt(mDisplayHeight) / mDisplayHeight;
+			mX = r.nextInt(displayHeight);
+			mY = r.nextInt(displayWidth);
+			mDx = (float) r.nextInt(displayHeight) / displayHeight;
 			mDx *= r.nextInt(2) == 1 ? MOVE_STEP : -1 * MOVE_STEP;
-			mDy = (float) r.nextInt(mDisplayWidth) / mDisplayWidth;
+			mDy = (float) r.nextInt(displayWidth) / displayWidth;
 			mDy *= r.nextInt(2) == 1 ? MOVE_STEP : -1 * MOVE_STEP;
 			mRotation = 1.0f;
 
-			mPainter.setAntiAlias(true);
+			painter.setAntiAlias(true);
 
 			// Instead of handling the Surface object directly, you should
 			// handle it via a SurfaceHolder. So, when your SurfaceView is
 			// initialized, get the SurfaceHolder by calling getHolder().
-			mSurfaceHolder = getHolder();
+			surfaceHolder = getHolder();
 			// You should then notify the SurfaceHolder that you'd like to receive
 			// SurfaceHolder callbacks (from SurfaceHolder.Callback) by calling
 			// addCallback() (pass it this).
-			mSurfaceHolder.addCallback(this);
+			surfaceHolder.addCallback(this);
+		}
+		
+		private void drawPipes(int pipeX, int pipeY, Canvas canvas) {
+		  int offset = (pipeRimWidth - pipeBodyWidth) / 2;
+		  int bottomPipeNeckY = sandY - pipeY;
+		 
+		// Bottom pipe 
+      canvas.drawBitmap(pipeRim, pipeX, bottomPipeNeckY - pipeRimHeight, painter);
+      Bitmap randomBottomBody = Bitmap.createScaledBitmap(pipeBody, pipeBodyWidth, pipeY, false);
+      canvas.drawBitmap(randomBottomBody, pipeX + offset, bottomPipeNeckY, painter);
+      
+      // Top pipe 
+      int topPipeNeckY = bottomPipeNeckY - 2 * pipeRimHeight - Math.round(displayHeight / pipeGapScreenRatio);
+      canvas.drawBitmap(pipeRim, pipeX, topPipeNeckY, painter);
+      Bitmap randomTopBody = Bitmap.createScaledBitmap(pipeBody, pipeBodyWidth, topPipeNeckY, false);
+      canvas.drawBitmap(randomTopBody, pipeX + offset, 0, painter);
+		}
+		
+		private void checkPipeEdges() {
+		  Random random = new Random();
+      int newPipeY = random.nextInt(displayHeight / 3) + (displayHeight / 10);
+      
+      // Pipe 1
+      if (pipe1X <= -pipeRimWidth)
+        pipe1X = displayWidth;
+      if (pipe1X >= displayWidth)
+        pipe1Y = newPipeY;
+      
+      // Pipe 2
+      if (pipe2X <= -pipeRimWidth) 
+        pipe2X = displayWidth;
+      if (pipe2X >= displayWidth)
+        pipe2Y = newPipeY;
 		}
 
 		private void drawFlappy(Canvas canvas) {
 			// Draw background.
 			canvas.drawColor(Color.rgb(112, 196, 206));
-			canvas.drawBitmap(mBackground, 0, mDisplayHeight - mBackgroundHeight, mPainter);
+			canvas.drawBitmap(background, 0, displayHeight - backgroundHeight, painter);
 
-			Random random = new Random();
-			int offset = (mPipeTopWidth - mPipeBodyWidth) / 2;
-			// Draw pipe 1
-			if (pipe1X <= -mPipeTopWidth) {
-				pipe1X = mDisplayWidth;
-			}
-			if (pipe1X >= mDisplayWidth) {
-				pipe1Y = mod(random.nextInt(), mDisplayHeight / 2) + 1;
-			}
-			canvas.drawBitmap(mPipeTop, pipe1X, mDisplayHeight - (mPipeTopHeight + pipe1Y), mPainter);
-			Bitmap randomBody1 = Bitmap.createScaledBitmap(this.mPipeBody, mPipeBodyWidth, pipe1Y, false);
-			canvas.drawBitmap(randomBody1, pipe1X + offset, mDisplayHeight - (pipe1Y), mPainter);
-			pipe1X -= pace;
+			checkPipeEdges();
+		  drawPipes(pipe1X, pipe1Y, canvas);
+	    drawPipes(pipe2X, pipe2Y, canvas);
+			
+      // Move pipes left.
+      pipe1X -= pace;
+      pipe2X -= pace;
 
-			// Draw pipe 2
-			if (pipe2X <= -mPipeTopWidth) {
-				pipe2X = mDisplayWidth;
-			}
-			if (pipe2X >= mDisplayWidth) {
-				pipe2Y = mod(random.nextInt(), mDisplayHeight / 2) + 1;
-			}
-			canvas.drawBitmap(mPipeTop, pipe2X, mDisplayHeight - (mPipeTopHeight + pipe2Y), mPainter);
-			Bitmap randomBody2 = Bitmap.createScaledBitmap(this.mPipeBody, mPipeBodyWidth, pipe2Y, false);
-			canvas.drawBitmap(randomBody2, pipe2X + offset, mDisplayHeight - (pipe2Y), mPainter);
-			pipe2X -= pace;
-
-			// Draw bird.
-			mRotation += ROT_STEP;
-			canvas.rotate(mRotation, mY + mFlappyHeightAndWidthAdj, mX
-					+ mFlappyHeightAndWidthAdj);
-			canvas.drawBitmap(mFlappy, mY, mX, mPainter);
+			// Draw Flappy.
+//			mRotation += ROT_STEP;
+//			canvas.rotate(mRotation, mY + flappyHeightAndWidthAdj, mX
+//					+ flappyHeightAndWidthAdj);
+			canvas.drawBitmap(flappy, flappyX, flappyY, painter);
+			flappyV += flappyG;
+			flappyY += flappyV;
 		}
 
 		private boolean move() {
-			mX += mDx;
-			mY += mDy;
-			if (mX < 0 - mFlappyHeightAndWidth
-					|| mX > mDisplayHeight + mFlappyHeightAndWidth
-					|| mY < 0 - mFlappyHeightAndWidth
-					|| mY > mDisplayWidth + mFlappyHeightAndWidth) {
-				return false;
-			} else {
-				return true;
-			}
+//			mX += mDx;
+//			mY += mDy;
+//			if (mX < 0 - flappyHeightAndWidth
+//					|| mX > displayHeight + flappyHeightAndWidth
+//					|| mY < 0 - flappyHeightAndWidth
+//					|| mY > displayWidth + flappyHeightAndWidth) {
+//				return false;
+//			} else {
+//				return true;
+//			}
+		  return true;
 		}
 
 		// Then override each of the SurfaceHolder.Callback methods inside your SurfaceView class.
@@ -214,7 +255,7 @@ public class FlappyActivity extends Activity {
 						// your second thread, you must pass the thread your
 						// SurfaceHandler and retrieve the Canvas with
 						// lockCanvas().
-						canvas = mSurfaceHolder.lockCanvas();
+						canvas = surfaceHolder.lockCanvas();
 						if (null != canvas) {
 							// You can now take the Canvas given to you by the
 							// SurfaceHolder and do your necessary drawing upon it.
@@ -223,7 +264,7 @@ public class FlappyActivity extends Activity {
 							// unlockCanvasAndPost(), passing it your Canvas
 							// object. The Surface will now draw the Canvas as
 							// you left it.
-							mSurfaceHolder.unlockCanvasAndPost(canvas);
+							surfaceHolder.unlockCanvasAndPost(canvas);
 						}
 					}
 				}

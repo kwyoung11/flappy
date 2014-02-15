@@ -13,12 +13,13 @@ public final class R {
     public static final class dimen {
         public static final int background_height=0x7f040003;
         public static final int background_width=0x7f040002;
-        public static final int image_height=0x7f040001;
-        public static final int image_width=0x7f040000;
-        public static final int pipe_body_height=0x7f040007;
-        public static final int pipe_body_width=0x7f040006;
-        public static final int pipe_top_height=0x7f040005;
-        public static final int pipe_top_width=0x7f040004;
+        public static final int flappy_height=0x7f040001;
+        public static final int flappy_width=0x7f040000;
+        public static final int pipe_body_height=0x7f040008;
+        public static final int pipe_body_width=0x7f040007;
+        public static final int pipe_top_height=0x7f040006;
+        public static final int pipe_top_width=0x7f040005;
+        public static final int sand_height=0x7f040004;
     }
     public static final class drawable {
         public static final int b128=0x7f020000;
@@ -30,7 +31,7 @@ public final class R {
         public static final int bird=0x7f020006;
         public static final int icon=0x7f020007;
         public static final int pipe_body=0x7f020008;
-        public static final int pipe_top=0x7f020009;
+        public static final int pipe_rim=0x7f020009;
     }
     public static final class id {
         public static final int frame=0x7f060000;
