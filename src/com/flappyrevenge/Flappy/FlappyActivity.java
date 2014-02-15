@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -49,7 +50,8 @@ public class FlappyActivity extends Activity {
 
 	private class FlappyView extends SurfaceView implements
 			SurfaceHolder.Callback {
-
+	  private boolean started = false;
+	  
 		// Background.
 		private final Bitmap background;
 		private final int backgroundHeight, sandY;
@@ -64,13 +66,15 @@ public class FlappyActivity extends Activity {
 		private final int pipeRimWidth, pipeRimHeight, pipeBodyWidth, pipeBodyHeight = 1;
 		private static final float pipeRimScreenRatio = 5.5f;
 		private static final float pipeBodyScreenRatio = 6f;
-	  private static final float pipeGapScreenRatio = 5f;
+	  private static final float pipeGapScreenRatio = 5.5f;
 		private static final int pace = 8;
 		private int pipe1X, pipe2X, pipe1Y, pipe2Y;
 
 		// Flappy.
 		private final Bitmap flappy;
 		private final int flappyHeight, flappyWidth;
+		private int flappyAngle;
+		private Matrix flappyMatrix;
 
 		// Display.
 		private final DisplayMetrics display;
@@ -93,8 +97,13 @@ public class FlappyActivity extends Activity {
 		
 		@Override
     public boolean onTouchEvent(MotionEvent event) { 
-		 flappyY -= displayHeight / 10;
-		 flappyV = 1;
+		  started = true;
+		  flappyY -= displayHeight / 25;
+		  flappyV = -9;
+		  flappyAngle = -30;
+//		 Matrix matrix = new Matrix();
+//     matrix.postRotate(-20);
+//     Bitmap.createBitmap(flappy, 0, 0, flappy.getWidth(), flappy.getHeight(), matrix, true);
 		 return false;
 		}
 
@@ -119,6 +128,7 @@ public class FlappyActivity extends Activity {
 			flappyX = displayWidth/4;
 			flappyY = displayHeight/2;
 			flappyV = 0;
+			flappyAngle = -20;
 
 			// Background image scaling.
 			int bgOriginalWidth = (int) getResources().getDimension(R.dimen.background_width);
@@ -209,19 +219,25 @@ public class FlappyActivity extends Activity {
 			checkPipeEdges();
 		  drawPipes(pipe1X, pipe1Y, canvas);
 	    drawPipes(pipe2X, pipe2Y, canvas);
-			
-      // Move pipes left.
-      pipe1X -= pace;
-      pipe2X -= pace;
 
 			// Draw Flappy.
 //			mRotation += ROT_STEP;
 //			canvas.rotate(mRotation, mY + flappyHeightAndWidthAdj, mX
 //					+ flappyHeightAndWidthAdj);
-			canvas.drawBitmap(flappy, flappyX, flappyY, painter);
-			flappyV += flappyG;
-			flappyY += flappyV;
-		}
+      flappyMatrix = new Matrix();
+      flappyMatrix.postRotate(flappyAngle);
+      Bitmap flappyBitMap = Bitmap.createBitmap(flappy, 0, 0, flappy.getWidth(), flappy.getHeight(), flappyMatrix, true);
+			canvas.drawBitmap(flappyBitMap, flappyX, flappyY, painter);
+			
+      // Move everything.
+      if (started) {
+        pipe1X -= pace;
+        pipe2X -= pace;
+  			flappyV += flappyG;
+  			flappyY += flappyV;
+  			flappyAngle = flappyV > 0 ? flappyV : 3 * flappyV;
+      }
+    }
 
 		private boolean move() {
 //			mX += mDx;
