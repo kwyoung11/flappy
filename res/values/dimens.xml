@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <dimen name="image_width">200dp</dimen>
-    <dimen name="image_height">200dp</dimen>
+    <dimen name="image_width">98dp</dimen>
+    <dimen name="image_height">71dp</dimen>
+
+    <dimen name="background_width">373dp</dimen>
+    <dimen name="background_height">274dp</dimen>
+
+    <dimen name="pipe_top_width">450dp</dimen>
+    <dimen name="pipe_top_height">117dp</dimen>
+
+    <dimen name="pipe_body_width">244dp</dimen>
+    <dimen name="pipe_body_height">1dp</dimen>
 
 </resources>
