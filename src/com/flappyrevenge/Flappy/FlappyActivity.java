@@ -5,11 +5,13 @@ import java.util.Random;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
@@ -25,14 +27,13 @@ public class FlappyActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-
+		
 		RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.frame);
 		final FlappyView bubbleView = new FlappyView(getApplicationContext(),
 				BitmapFactory.decodeResource(getResources(), R.drawable.bird),
 				BitmapFactory.decodeResource(getResources(), R.drawable.background_bottom),
 				BitmapFactory.decodeResource(getResources(), R.drawable.pipe_rim),
 				BitmapFactory.decodeResource(getResources(), R.drawable.pipe_body));
-
 		relativeLayout.addView(bubbleView);
 	}
 
@@ -82,6 +83,9 @@ public class FlappyActivity extends Activity {
 		private float mX, mY, mDx, mDy, mRotation;
 		private final SurfaceHolder surfaceHolder;
 		private final Paint painter = new Paint();
+		private int score = 0;
+		private int time;
+		
 
 		// Inside your SurfaceView class is also a good place to define your
 		// secondary Thread class, which will perform all the drawing procedures
@@ -97,9 +101,13 @@ public class FlappyActivity extends Activity {
 		
 		@Override
     public boolean onTouchEvent(MotionEvent event) { 
-		  started = true;
+		  if (!started) {
+		    started = true;
+		    time = 0;
+		  }
+		  
 		  flappyY -= displayHeight / 25;
-		  flappyV = -9;
+		  flappyV = -10;
 		  flappyAngle = -30;
 //		 Matrix matrix = new Matrix();
 //     matrix.postRotate(-20);
@@ -221,16 +229,21 @@ public class FlappyActivity extends Activity {
 	    drawPipes(pipe2X, pipe2Y, canvas);
 
 			// Draw Flappy.
-//			mRotation += ROT_STEP;
-//			canvas.rotate(mRotation, mY + flappyHeightAndWidthAdj, mX
-//					+ flappyHeightAndWidthAdj);
       flappyMatrix = new Matrix();
       flappyMatrix.postRotate(flappyAngle);
       Bitmap flappyBitMap = Bitmap.createBitmap(flappy, 0, 0, flappy.getWidth(), flappy.getHeight(), flappyMatrix, true);
 			canvas.drawBitmap(flappyBitMap, flappyX, flappyY, painter);
 			
+			// Draw score.
+			score = Math.max(0, (time * pace - (displayWidth / 4 + pipeBodyWidth)) / ((displayWidth + pipeRimWidth) / 2));
+			Paint scorePainter = new Paint();
+			scorePainter.setARGB(220, 255, 70, 70);
+			scorePainter.setTextSize(100);
+			canvas.drawText(Integer.toString(score), displayWidth/2, displayHeight/10, scorePainter);
+			
       // Move everything.
       if (started) {
+        time++;
         pipe1X -= pace;
         pipe2X -= pace;
   			flappyV += flappyG;
