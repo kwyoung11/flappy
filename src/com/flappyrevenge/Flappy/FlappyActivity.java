@@ -5,13 +5,11 @@ import java.util.Random;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
@@ -27,13 +25,15 @@ public class FlappyActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		
+
 		RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.frame);
 		final FlappyView bubbleView = new FlappyView(getApplicationContext(),
 				BitmapFactory.decodeResource(getResources(), R.drawable.bird),
-				BitmapFactory.decodeResource(getResources(), R.drawable.background_bottom),
-				BitmapFactory.decodeResource(getResources(), R.drawable.pipe_rim),
-				BitmapFactory.decodeResource(getResources(), R.drawable.pipe_body));
+				BitmapFactory.decodeResource(getResources(),
+						R.drawable.background_bottom),
+				BitmapFactory.decodeResource(getResources(),
+						R.drawable.pipe_rim), BitmapFactory.decodeResource(
+						getResources(), R.drawable.pipe_body));
 		relativeLayout.addView(bubbleView);
 	}
 
@@ -51,23 +51,24 @@ public class FlappyActivity extends Activity {
 
 	private class FlappyView extends SurfaceView implements
 			SurfaceHolder.Callback {
-	  private boolean started = false;
-	  
+		private boolean started = false;
+
 		// Background.
 		private final Bitmap background;
 		private final int backgroundHeight, sandY;
-		
+
 		private final int flappyX;
-    private int flappyY;
-    private int flappyV;
-    private final int flappyG = 1;
-		
+		private int flappyY;
+		private int flappyV;
+		private final int flappyG = 1;
+
 		// Pipes.
 		private final Bitmap pipeRim, pipeBody;
-		private final int pipeRimWidth, pipeRimHeight, pipeBodyWidth, pipeBodyHeight = 1;
+		private final int pipeRimWidth, pipeRimHeight, pipeBodyWidth,
+				pipeBodyHeight = 1;
 		private static final float pipeRimScreenRatio = 5.5f;
 		private static final float pipeBodyScreenRatio = 6f;
-	  private static final float pipeGapScreenRatio = 5.5f;
+		private static final float pipeGapScreenRatio = 6f;
 		private static final int pace = 8;
 		private int pipe1X, pipe2X, pipe1Y, pipe2Y;
 
@@ -80,12 +81,17 @@ public class FlappyActivity extends Activity {
 		// Display.
 		private final DisplayMetrics display;
 		private final int displayWidth, displayHeight;
-		private float mX, mY, mDx, mDy, mRotation;
+		private final float mX, mY;
+
+		private float mDx;
+
+		private float mDy;
+
+		private final float mRotation;
 		private final SurfaceHolder surfaceHolder;
 		private final Paint painter = new Paint();
 		private int score = 0;
 		private int time;
-		
 
 		// Inside your SurfaceView class is also a good place to define your
 		// secondary Thread class, which will perform all the drawing procedures
@@ -98,72 +104,75 @@ public class FlappyActivity extends Activity {
 		int mod(int a, int b) {
 			return (a % b + b) % b;
 		}
-		
+
 		@Override
-    public boolean onTouchEvent(MotionEvent event) { 
-		  if (!started) {
-		    started = true;
-		    time = 0;
-		  }
-		  
-		  flappyY -= displayHeight / 25;
-		  flappyV = -10;
-		  flappyAngle = -30;
-//		 Matrix matrix = new Matrix();
-//     matrix.postRotate(-20);
-//     Bitmap.createBitmap(flappy, 0, 0, flappy.getWidth(), flappy.getHeight(), matrix, true);
-		 return false;
+		public boolean onTouchEvent(MotionEvent event) {
+			if (!started) {
+				started = true;
+				time = 0;
+			}
+
+			flappyY -= displayHeight / 25;
+			flappyV = -10;
+			flappyAngle = -30;
+			// Matrix matrix = new Matrix();
+			// matrix.postRotate(-20);
+			// Bitmap.createBitmap(flappy, 0, 0, flappy.getWidth(),
+			// flappy.getHeight(), matrix, true);
+			return false;
 		}
 
-		public FlappyView(Context contextIn, Bitmap bitmapIn, Bitmap backgroundIn, Bitmap pipeRimIn,
-				Bitmap pipeBodyIn) {
+		public FlappyView(Context contextIn, Bitmap bitmapIn,
+				Bitmap backgroundIn, Bitmap pipeRimIn, Bitmap pipeBodyIn) {
 			super(contextIn);
-			
+
 			// Display.
-      display = new DisplayMetrics();
-      FlappyActivity.this.getWindowManager().getDefaultDisplay()
-          .getMetrics(display);
-      displayWidth = display.widthPixels;
-      displayHeight = display.heightPixels;
-      
+			display = new DisplayMetrics();
+			FlappyActivity.this.getWindowManager().getDefaultDisplay()
+					.getMetrics(display);
+			displayWidth = display.widthPixels;
+			displayHeight = display.heightPixels;
+
 			// Flappy.
-      int flappyOriginalWidth = (int) getResources().getDimension(R.dimen.flappy_width);
-			int flappyOriginalHeight = (int) getResources().getDimension(R.dimen.flappy_height);
+			int flappyOriginalWidth = (int) getResources().getDimension(
+					R.dimen.flappy_width);
+			int flappyOriginalHeight = (int) getResources().getDimension(
+					R.dimen.flappy_height);
 			flappyWidth = displayWidth / 9;
-			flappyHeight = flappyOriginalHeight * flappyWidth / flappyOriginalWidth;
-			flappy = Bitmap.createScaledBitmap(bitmapIn,
-					flappyWidth, flappyHeight, false);
-			flappyX = displayWidth/4;
-			flappyY = displayHeight/2;
-			flappyV = 0;
-			flappyAngle = -20;
+			flappyHeight = flappyOriginalHeight * flappyWidth
+					/ flappyOriginalWidth;
+			flappy = Bitmap.createScaledBitmap(bitmapIn, flappyWidth,
+					flappyHeight, false);
+			flappyX = displayWidth / 4;
 
 			// Background image scaling.
-			int bgOriginalWidth = (int) getResources().getDimension(R.dimen.background_width);
-			int bgOriginalHeight = (int) getResources().getDimension(R.dimen.background_height);
-			int bgSandHeight = (int) getResources().getDimension(R.dimen.sand_height);
-			backgroundHeight = bgOriginalHeight * displayWidth / bgOriginalWidth;
-			background = Bitmap.createScaledBitmap(backgroundIn,
-					displayWidth, backgroundHeight, false);
+			int bgOriginalWidth = (int) getResources().getDimension(
+					R.dimen.background_width);
+			int bgOriginalHeight = (int) getResources().getDimension(
+					R.dimen.background_height);
+			int bgSandHeight = (int) getResources().getDimension(
+					R.dimen.sand_height);
+			backgroundHeight = bgOriginalHeight * displayWidth
+					/ bgOriginalWidth;
+			background = Bitmap.createScaledBitmap(backgroundIn, displayWidth,
+					backgroundHeight, false);
 			int sandHeight = bgSandHeight * displayWidth / bgOriginalWidth;
 			sandY = displayHeight - sandHeight;
 
 			// Pipes - Bottom.
-			int pipeTopOriginalWidth = (int) getResources().getDimension(R.dimen.pipe_top_width);
-			int pipeTopOriginalHeight = (int) getResources().getDimension(R.dimen.pipe_top_height);
+			int pipeTopOriginalWidth = (int) getResources().getDimension(
+					R.dimen.pipe_top_width);
+			int pipeTopOriginalHeight = (int) getResources().getDimension(
+					R.dimen.pipe_top_height);
 			pipeRimWidth = Math.round(displayWidth / pipeRimScreenRatio);
-			pipeRimHeight = pipeTopOriginalHeight * pipeRimWidth / pipeTopOriginalWidth;
-			pipeRim = Bitmap.createScaledBitmap(pipeRimIn, pipeRimWidth, pipeRimHeight, false);
+			pipeRimHeight = pipeTopOriginalHeight * pipeRimWidth
+					/ pipeTopOriginalWidth;
+			pipeRim = Bitmap.createScaledBitmap(pipeRimIn, pipeRimWidth,
+					pipeRimHeight, false);
 
 			pipeBodyWidth = Math.round(displayWidth / pipeBodyScreenRatio);
-			pipeBody = Bitmap.createScaledBitmap(pipeBodyIn, pipeBodyWidth, pipeBodyHeight, false);
-
-			// Pipes - Top.
-
-			
-			// Pipe X's.
-			pipe1X = displayWidth;
-			pipe2X = displayWidth + (displayWidth + pipeRimWidth) / 2;
+			pipeBody = Bitmap.createScaledBitmap(pipeBodyIn, pipeBodyWidth,
+					pipeBodyHeight, false);
 
 			Random r = new Random();
 			mX = r.nextInt(displayHeight);
@@ -180,95 +189,134 @@ public class FlappyActivity extends Activity {
 			// handle it via a SurfaceHolder. So, when your SurfaceView is
 			// initialized, get the SurfaceHolder by calling getHolder().
 			surfaceHolder = getHolder();
-			// You should then notify the SurfaceHolder that you'd like to receive
+			// You should then notify the SurfaceHolder that you'd like to
+			// receive
 			// SurfaceHolder callbacks (from SurfaceHolder.Callback) by calling
 			// addCallback() (pass it this).
 			surfaceHolder.addCallback(this);
 		}
-		
-		private void drawPipes(int pipeX, int pipeY, Canvas canvas) {
-		  int offset = (pipeRimWidth - pipeBodyWidth) / 2;
-		  int bottomPipeNeckY = sandY - pipeY;
-		 
-		// Bottom pipe 
-      canvas.drawBitmap(pipeRim, pipeX, bottomPipeNeckY - pipeRimHeight, painter);
-      Bitmap randomBottomBody = Bitmap.createScaledBitmap(pipeBody, pipeBodyWidth, pipeY, false);
-      canvas.drawBitmap(randomBottomBody, pipeX + offset, bottomPipeNeckY, painter);
-      
-      // Top pipe 
-      int topPipeNeckY = bottomPipeNeckY - 2 * pipeRimHeight - Math.round(displayHeight / pipeGapScreenRatio);
-      canvas.drawBitmap(pipeRim, pipeX, topPipeNeckY, painter);
-      Bitmap randomTopBody = Bitmap.createScaledBitmap(pipeBody, pipeBodyWidth, topPipeNeckY, false);
-      canvas.drawBitmap(randomTopBody, pipeX + offset, 0, painter);
+
+		// Returns the edge of the top pipe.
+		private int drawPipes(int pipeX, int pipeY, Canvas canvas) {
+			int offset = (pipeRimWidth - pipeBodyWidth) / 2;
+			int bottomPipeNeckY = sandY - pipeY;
+
+			// Bottom pipe
+			canvas.drawBitmap(pipeRim, pipeX, bottomPipeNeckY - pipeRimHeight,
+					painter);
+			Bitmap randomBottomBody = Bitmap.createScaledBitmap(pipeBody,
+					pipeBodyWidth, pipeY, false);
+			canvas.drawBitmap(randomBottomBody, pipeX + offset,
+					bottomPipeNeckY, painter);
+
+			// Top pipe
+			int topPipeNeckY = bottomPipeNeckY - 2 * pipeRimHeight
+					- Math.round(displayHeight / pipeGapScreenRatio);
+			canvas.drawBitmap(pipeRim, pipeX, topPipeNeckY, painter);
+			Bitmap randomTopBody = Bitmap.createScaledBitmap(pipeBody,
+					pipeBodyWidth, topPipeNeckY, false);
+			canvas.drawBitmap(randomTopBody, pipeX + offset, 0, painter);
+
+			return topPipeNeckY + pipeRimHeight;
 		}
-		
+
 		private void checkPipeEdges() {
-		  Random random = new Random();
-      int newPipeY = random.nextInt(displayHeight / 3) + (displayHeight / 10);
-      
-      // Pipe 1
-      if (pipe1X <= -pipeRimWidth)
-        pipe1X = displayWidth;
-      if (pipe1X >= displayWidth)
-        pipe1Y = newPipeY;
-      
-      // Pipe 2
-      if (pipe2X <= -pipeRimWidth) 
-        pipe2X = displayWidth;
-      if (pipe2X >= displayWidth)
-        pipe2Y = newPipeY;
+			if (time == 0) {
+				// Reinitialize flappy's position.
+				flappyY = displayHeight / 2;
+				flappyV = 0;
+				flappyAngle = -20;
+
+				// Reinitialize pipe X's.
+				pipe1X = displayWidth;
+				pipe2X = displayWidth + (displayWidth + pipeRimWidth) / 2;
+			}
+
+			Random random = new Random();
+			int newPipeY = random.nextInt(displayHeight / 3)
+					+ (displayHeight / 10);
+
+			// Pipe 1
+			if (pipe1X <= -pipeRimWidth)
+				pipe1X = displayWidth;
+			if (pipe1X >= displayWidth)
+				pipe1Y = newPipeY;
+
+			// Pipe 2
+			if (pipe2X <= -pipeRimWidth)
+				pipe2X = displayWidth;
+			if (pipe2X >= displayWidth)
+				pipe2Y = newPipeY;
+		}
+
+		boolean hitPipe(int pipeX, int topPipeEdge) {
+			return (flappyX + flappyWidth >= pipeX && flappyX <= pipeX + pipeRimWidth // X in between
+			&& (flappyY < topPipeEdge // hit his head
+			|| flappyY + flappyHeight > topPipeEdge + Math.round(displayHeight / pipeGapScreenRatio))); // hit his ass
 		}
 
 		private void drawFlappy(Canvas canvas) {
 			// Draw background.
 			canvas.drawColor(Color.rgb(112, 196, 206));
-			canvas.drawBitmap(background, 0, displayHeight - backgroundHeight, painter);
+			canvas.drawBitmap(background, 0, displayHeight - backgroundHeight,
+					painter);
 
 			checkPipeEdges();
-		  drawPipes(pipe1X, pipe1Y, canvas);
-	    drawPipes(pipe2X, pipe2Y, canvas);
+			int topPipe1Edge = drawPipes(pipe1X, pipe1Y, canvas);
+			int topPipe2Edge = drawPipes(pipe2X, pipe2Y, canvas);
 
 			// Draw Flappy.
-      flappyMatrix = new Matrix();
-      flappyMatrix.postRotate(flappyAngle);
-      Bitmap flappyBitMap = Bitmap.createBitmap(flappy, 0, 0, flappy.getWidth(), flappy.getHeight(), flappyMatrix, true);
+			flappyMatrix = new Matrix();
+			flappyMatrix.postRotate(flappyAngle);
+			Bitmap flappyBitMap = Bitmap.createBitmap(flappy, 0, 0,
+					flappy.getWidth(), flappy.getHeight(), flappyMatrix, true);
 			canvas.drawBitmap(flappyBitMap, flappyX, flappyY, painter);
-			
+
 			// Draw score.
-			score = Math.max(0, (time * pace - (displayWidth / 4 + pipeBodyWidth)) / ((displayWidth + pipeRimWidth) / 2));
+			score = Math.max(0,
+					(time * pace - (displayWidth / 4 + pipeBodyWidth / 2))
+							/ ((displayWidth + pipeRimWidth) / 2));
 			Paint scorePainter = new Paint();
 			scorePainter.setARGB(220, 255, 70, 70);
 			scorePainter.setTextSize(100);
-			canvas.drawText(Integer.toString(score), displayWidth/2, displayHeight/10, scorePainter);
-			
-      // Move everything.
-      if (started) {
-        time++;
-        pipe1X -= pace;
-        pipe2X -= pace;
-  			flappyV += flappyG;
-  			flappyY += flappyV;
-  			flappyAngle = flappyV > 0 ? flappyV : 3 * flappyV;
-      }
-    }
+			canvas.drawText(Integer.toString(score), displayWidth / 2,
+					displayHeight / 10, scorePainter);
 
-		private boolean move() {
-//			mX += mDx;
-//			mY += mDy;
-//			if (mX < 0 - flappyHeightAndWidth
-//					|| mX > displayHeight + flappyHeightAndWidth
-//					|| mY < 0 - flappyHeightAndWidth
-//					|| mY > displayWidth + flappyHeightAndWidth) {
-//				return false;
-//			} else {
-//				return true;
-//			}
-		  return true;
+			// Check if Flappy is dead.
+			if (hitPipe(pipe1X, topPipe1Edge) || hitPipe(pipe2X, topPipe2Edge)) {
+				started = false;
+			}
+
+			// Move everything.
+			if (started) {
+				time++;
+				pipe1X -= pace;
+				pipe2X -= pace;
+				flappyV += flappyG;
+				flappyY += flappyV;
+				flappyAngle = flappyV > 0 ? flappyV : 3 * flappyV;
+			}
 		}
 
-		// Then override each of the SurfaceHolder.Callback methods inside your SurfaceView class.
+		private boolean move() {
+			// mX += mDx;
+			// mY += mDy;
+			// if (mX < 0 - flappyHeightAndWidth
+			// || mX > displayHeight + flappyHeightAndWidth
+			// || mY < 0 - flappyHeightAndWidth
+			// || mY > displayWidth + flappyHeightAndWidth) {
+			// return false;
+			// } else {
+			// return true;
+			// }
+			return true;
+		}
+
+		// Then override each of the SurfaceHolder.Callback methods inside your
+		// SurfaceView class.
 		@Override
-		public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+		public void surfaceChanged(SurfaceHolder holder, int format, int width,
+				int height) {
 		}
 
 		@Override
@@ -287,7 +335,8 @@ public class FlappyActivity extends Activity {
 						canvas = surfaceHolder.lockCanvas();
 						if (null != canvas) {
 							// You can now take the Canvas given to you by the
-							// SurfaceHolder and do your necessary drawing upon it.
+							// SurfaceHolder and do your necessary drawing upon
+							// it.
 							drawFlappy(canvas);
 							// Once you're done drawing with the Canvas, call
 							// unlockCanvasAndPost(), passing it your Canvas
