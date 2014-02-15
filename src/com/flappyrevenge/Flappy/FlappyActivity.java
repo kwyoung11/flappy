@@ -4,12 +4,14 @@ import java.util.Random;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Paint.Align;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
@@ -112,7 +114,6 @@ public class FlappyActivity extends Activity {
 				lost = false;
 				initializeFlappy();
 			} else if (!started) {
-				time = 0;
 				started = true;
 			}
 
@@ -203,6 +204,8 @@ public class FlappyActivity extends Activity {
 		}
 
 		private void initializeFlappy() {
+		  time = 0;
+		  
 			// Reinitialize flappy's position.
 			flappyY = displayHeight / 2;
 			flappyV = 0;
@@ -270,6 +273,45 @@ public class FlappyActivity extends Activity {
 			checkPipeEdges();
 			int topPipe1Edge = drawPipes(pipe1X, pipe1Y, canvas);
 			int topPipe2Edge = drawPipes(pipe2X, pipe2Y, canvas);
+			
+			// Draw initial game text.
+			if (!started && !lost) {
+			  Paint instructionPainter = new Paint();
+	      instructionPainter.setARGB(220, 75, 70, 210);
+	      instructionPainter.setTextSize(150);
+	      instructionPainter.setTextAlign(Align.CENTER);
+	      canvas.drawText("Tap to start", displayWidth / 2,
+	          displayHeight / 3, instructionPainter);
+			}
+			
+			// Draw the game over screen text.
+			if (lost) {
+		    // Keeping track of the score.
+		    SharedPreferences sp = getSharedPreferences("flappy_prefs", Activity.MODE_PRIVATE);
+		    int highScore = sp.getInt("high_score", -1);
+		    if (score > highScore) {
+		      highScore = score;
+		      SharedPreferences.Editor editor = sp.edit();
+		      editor.putInt("high_score", highScore);
+		      editor.commit();
+		    }
+			  
+		    // Game over message and stuff.
+			  Paint lostPainter = new Paint();
+        lostPainter.setARGB(225, 205, 133, 63);
+        lostPainter.setARGB(220, 75, 70, 210);
+        lostPainter.setTextSize(150);
+        lostPainter.setTextAlign(Align.CENTER);
+        // lostPainter.setShadowLayer(5, 5, 5, 222);
+        canvas.drawText("Game Over", displayWidth / 2,
+            displayHeight / 5, lostPainter);
+        canvas.drawText("Tap to Replay", displayWidth / 2, displayHeight - (displayHeight/2), lostPainter);
+        lostPainter.setTextSize(100);
+        lostPainter.setARGB(250, 220, 70, 70);
+        lostPainter.setTextAlign(Align.CENTER);
+        canvas.drawText("High score: " + highScore, displayWidth / 2, displayHeight - (displayHeight/8), lostPainter);
+			}
+			
 
 			// Draw Flappy.
 			flappyMatrix = new Matrix();
