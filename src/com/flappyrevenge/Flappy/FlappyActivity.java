@@ -52,6 +52,7 @@ public class FlappyActivity extends Activity {
 	private class FlappyView extends SurfaceView implements
 			SurfaceHolder.Callback {
 		private boolean started = false;
+		private boolean lost = false;
 
 		// Background.
 		private final Bitmap background;
@@ -107,9 +108,12 @@ public class FlappyActivity extends Activity {
 
 		@Override
 		public boolean onTouchEvent(MotionEvent event) {
-			if (!started) {
-				started = true;
+			if (lost) {
+				lost = false;
+				initializeFlappy();
+			} else if (!started) {
 				time = 0;
+				started = true;
 			}
 
 			flappyY -= displayHeight / 25;
@@ -174,6 +178,8 @@ public class FlappyActivity extends Activity {
 			pipeBody = Bitmap.createScaledBitmap(pipeBodyIn, pipeBodyWidth,
 					pipeBodyHeight, false);
 
+			initializeFlappy();
+
 			Random r = new Random();
 			mX = r.nextInt(displayHeight);
 			mY = r.nextInt(displayWidth);
@@ -194,6 +200,17 @@ public class FlappyActivity extends Activity {
 			// SurfaceHolder callbacks (from SurfaceHolder.Callback) by calling
 			// addCallback() (pass it this).
 			surfaceHolder.addCallback(this);
+		}
+
+		private void initializeFlappy() {
+			// Reinitialize flappy's position.
+			flappyY = displayHeight / 2;
+			flappyV = 0;
+			flappyAngle = -20;
+
+			// Reinitialize pipe X's.
+			pipe1X = displayWidth;
+			pipe2X = displayWidth + (displayWidth + pipeRimWidth) / 2;
 		}
 
 		// Returns the edge of the top pipe.
@@ -221,17 +238,6 @@ public class FlappyActivity extends Activity {
 		}
 
 		private void checkPipeEdges() {
-			if (time == 0) {
-				// Reinitialize flappy's position.
-				flappyY = displayHeight / 2;
-				flappyV = 0;
-				flappyAngle = -20;
-
-				// Reinitialize pipe X's.
-				pipe1X = displayWidth;
-				pipe2X = displayWidth + (displayWidth + pipeRimWidth) / 2;
-			}
-
 			Random random = new Random();
 			int newPipeY = random.nextInt(displayHeight / 3)
 					+ (displayHeight / 10);
@@ -285,10 +291,11 @@ public class FlappyActivity extends Activity {
 			// Check if Flappy is dead.
 			if (hitPipe(pipe1X, topPipe1Edge) || hitPipe(pipe2X, topPipe2Edge)) {
 				started = false;
+				lost = true;
 			}
 
 			// Move everything.
-			if (started) {
+			if (started && !lost) {
 				time++;
 				pipe1X -= pace;
 				pipe2X -= pace;
