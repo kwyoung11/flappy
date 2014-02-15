@@ -11,7 +11,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.RelativeLayout;
@@ -59,6 +58,8 @@ public class FlappyActivity extends Activity {
 		private final int mPipeTopWidth, mPipeTopHeight, mPipeBodyWidth, mPipeBodyHeight = 1;
 		private static final float pipeTopScreenRatio = 5.5f;
 		private static final float pipeBodyScreenRatio = 6f;
+		private static final int pace = 8;
+		private int pipe1X, pipe2X, pipe1Y, pipe2Y;
 
 		// Flappy.
 		private final Bitmap mFlappy;
@@ -78,6 +79,10 @@ public class FlappyActivity extends Activity {
 
 		private static final int MOVE_STEP = 1;
 		private static final float ROT_STEP = 1.0f;
+
+		int mod(int a, int b) {
+			return (a % b + b) % b;
+		}
 
 		public FlappyView(Context context, Bitmap bitmap, Bitmap background, Bitmap pipeTop,
 				Bitmap pipeBody) {
@@ -115,6 +120,10 @@ public class FlappyActivity extends Activity {
 			mPipeBodyWidth = Math.round(mDisplayWidth / pipeBodyScreenRatio);
 			this.mPipeBody = Bitmap.createScaledBitmap(pipeBody, mPipeBodyWidth, mPipeBodyHeight, false);
 
+			// Pipe X's.
+			pipe1X = mDisplayWidth;
+			pipe2X = mDisplayWidth + (mDisplayWidth + mPipeTopWidth) / 2;
+
 			Random r = new Random();
 			mX = r.nextInt(mDisplayHeight);
 			mY = r.nextInt(mDisplayWidth);
@@ -137,19 +146,35 @@ public class FlappyActivity extends Activity {
 		}
 
 		private void drawFlappy(Canvas canvas) {
-			// Draw backround.
+			// Draw background.
 			canvas.drawColor(Color.rgb(112, 196, 206));
 			canvas.drawBitmap(mBackground, 0, mDisplayHeight - mBackgroundHeight, mPainter);
 
-			// Draw pipes
 			Random random = new Random();
-			int randomX = random.nextInt() % mDisplayWidth;
-			int randomY = random.nextInt() % (mDisplayHeight/3) + 1;
-			canvas.drawBitmap(mPipeTop, randomX, mDisplayHeight - (mPipeTopHeight + randomY), mPainter);
 			int offset = (mPipeTopWidth - mPipeBodyWidth) / 2;
-			Log.i("flappy", "randomY = " + randomY);
-			Bitmap randomBody = Bitmap.createScaledBitmap(this.mPipeBody, mPipeBodyWidth, randomY, false);
-			canvas.drawBitmap(randomBody, randomX + offset, mDisplayHeight - (randomY), mPainter);
+			// Draw pipe 1
+			if (pipe1X <= -mPipeTopWidth) {
+				pipe1X = mDisplayWidth;
+			}
+			if (pipe1X >= mDisplayWidth) {
+				pipe1Y = mod(random.nextInt(), mDisplayHeight / 2) + 1;
+			}
+			canvas.drawBitmap(mPipeTop, pipe1X, mDisplayHeight - (mPipeTopHeight + pipe1Y), mPainter);
+			Bitmap randomBody1 = Bitmap.createScaledBitmap(this.mPipeBody, mPipeBodyWidth, pipe1Y, false);
+			canvas.drawBitmap(randomBody1, pipe1X + offset, mDisplayHeight - (pipe1Y), mPainter);
+			pipe1X -= pace;
+
+			// Draw pipe 2
+			if (pipe2X <= -mPipeTopWidth) {
+				pipe2X = mDisplayWidth;
+			}
+			if (pipe2X >= mDisplayWidth) {
+				pipe2Y = mod(random.nextInt(), mDisplayHeight / 2) + 1;
+			}
+			canvas.drawBitmap(mPipeTop, pipe2X, mDisplayHeight - (mPipeTopHeight + pipe2Y), mPainter);
+			Bitmap randomBody2 = Bitmap.createScaledBitmap(this.mPipeBody, mPipeBodyWidth, pipe2Y, false);
+			canvas.drawBitmap(randomBody2, pipe2X + offset, mDisplayHeight - (pipe2Y), mPainter);
+			pipe2X -= pace;
 
 			// Draw bird.
 			mRotation += ROT_STEP;
