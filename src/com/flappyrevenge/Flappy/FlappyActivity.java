@@ -1,5 +1,6 @@
 package com.flappyrevenge.Flappy;
 
+import java.io.IOException;
 import java.util.Random;
 
 import android.app.Activity;
@@ -12,6 +13,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
@@ -107,6 +109,19 @@ public class FlappyActivity extends Activity {
 		int mod(int a, int b) {
 			return (a % b + b) % b;
 		}
+		
+		public void audioPlayer(String path, String fileName) {
+	    //set up MediaPlayer    
+	    MediaPlayer mp = new MediaPlayer();
+
+	    try {
+	        mp.setDataSource(path+"/"+fileName);
+	        mp.prepare();
+	        mp.start();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
 
 		@Override
 		public boolean onTouchEvent(MotionEvent event) {
@@ -116,7 +131,14 @@ public class FlappyActivity extends Activity {
 			} else if (!started) {
 				started = true;
 			}
-
+			
+//			audioPlayer("res/raw", "dino_flying");
+//			FlappyAudio audio = new FlappyAudio(getApplicationContext());
+//			audio.playClick();
+			MediaPlayer mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.dino_flying);
+			mediaPlayer.start();
+			
+			
 			flappyY -= displayHeight / 25;
 			flappyV = -10;
 			flappyAngle = -30;
@@ -263,6 +285,10 @@ public class FlappyActivity extends Activity {
 			&& (flappyY < topPipeEdge // hit his head
 			|| flappyY + flappyHeight > topPipeEdge + Math.round(displayHeight / pipeGapScreenRatio))); // hit his ass
 		}
+		
+		boolean hitBottom(int bottomY) {
+		  return flappyY + flappyHeight < bottomY;
+		}
 
 		private void drawFlappy(Canvas canvas) {
 			// Draw background.
@@ -321,9 +347,14 @@ public class FlappyActivity extends Activity {
 			canvas.drawBitmap(flappyBitMap, flappyX, flappyY, painter);
 
 			// Draw score.
+			int prevScore = score;
 			score = Math.max(0,
 					(time * pace - (displayWidth / 4 + pipeBodyWidth / 2))
 							/ ((displayWidth + pipeRimWidth) / 2));
+			if (score != prevScore) {
+			  MediaPlayer mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.score);
+	      mediaPlayer.start();
+			}
 			Paint scorePainter = new Paint();
 			scorePainter.setARGB(220, 255, 70, 70);
 			scorePainter.setTextSize(100);
@@ -331,9 +362,11 @@ public class FlappyActivity extends Activity {
 					displayHeight / 10, scorePainter);
 
 			// Check if Flappy is dead.
-			if (hitPipe(pipe1X, topPipe1Edge) || hitPipe(pipe2X, topPipe2Edge)) {
+			if (hitPipe(pipe1X, topPipe1Edge) || hitPipe(pipe2X, topPipe2Edge) || hitBottom(displayHeight - sandY)) {
 				started = false;
 				lost = true;
+				MediaPlayer mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.crash);
+        mediaPlayer.start();
 			}
 
 			// Move everything.
