@@ -41,6 +41,11 @@ public class FlappyActivity extends Activity {
 		relativeLayout.addView(bubbleView);
 	}
 
+	@Override
+	protected void onResume() {
+	    super.onResume();
+	}
+
 	// The SurfaceView is a special subclass of View that offers a dedicated
 	// drawing surface within the View hierarchy. The aim is to offer this
 	// drawing surface to an application's secondary thread, so that the
