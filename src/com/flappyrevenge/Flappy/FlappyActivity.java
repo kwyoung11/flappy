@@ -12,7 +12,8 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
-import android.media.MediaPlayer;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
@@ -59,7 +60,7 @@ public class FlappyActivity extends Activity {
 
 		// Background.
 		private final Bitmap background;
-		private final int backgroundHeight, sandY;
+		private final int backgroundHeight, groundY;
 
 		private final int flappyX;
 		private int flappyY;
@@ -72,7 +73,7 @@ public class FlappyActivity extends Activity {
 				pipeBodyHeight = 1;
 		private static final float pipeRimScreenRatio = 5.5f;
 		private static final float pipeBodyScreenRatio = 6f;
-		private static final float pipeGapScreenRatio = 7f;
+		private static final float pipeGapScreenRatio = 7.5f;
 		private static final int pace = 8;
 		private int pipe1X, pipe2X, pipe1Y, pipe2Y;
 
@@ -105,22 +106,10 @@ public class FlappyActivity extends Activity {
 		private static final int MOVE_STEP = 1;
 		private static final float ROT_STEP = 1.0f;
 
-		int mod(int a, int b) {
-			return (a % b + b) % b;
-		}
-
-		public void audioPlayer(String path, String fileName) {
-	    //set up MediaPlayer
-	    MediaPlayer mp = new MediaPlayer();
-
-	    try {
-	        mp.setDataSource(path+"/"+fileName);
-	        mp.prepare();
-	        mp.start();
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	}
+		private final SoundPool sp;
+		private final int crashSound;
+		private final int flyingSound;
+		private final int scoreSound;
 
 		@Override
 		public boolean onTouchEvent(MotionEvent event) {
@@ -131,11 +120,7 @@ public class FlappyActivity extends Activity {
 				started = true;
 			}
 
-//			audioPlayer("res/raw", "dino_flying");
-//			FlappyAudio audio = new FlappyAudio(getApplicationContext());
-//			audio.playClick();
-			MediaPlayer mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.dino_flying);
-			mediaPlayer.start();
+			sp.play(flyingSound, 100, 100, 1, 0, 1.0f);
 
 			flappyY -= displayHeight / 25;
 			flappyV = -10;
@@ -182,7 +167,7 @@ public class FlappyActivity extends Activity {
 			background = Bitmap.createScaledBitmap(backgroundIn, displayWidth,
 					backgroundHeight, false);
 			int sandHeight = bgSandHeight * displayWidth / bgOriginalWidth;
-			sandY = displayHeight - sandHeight;
+			groundY = displayHeight - sandHeight;
 
 			// Pipes - Bottom.
 			int pipeTopOriginalWidth = (int) getResources().getDimension(
@@ -200,6 +185,11 @@ public class FlappyActivity extends Activity {
 					pipeBodyHeight, false);
 
 			initializeFlappy();
+
+			sp = new SoundPool(3, AudioManager.STREAM_MUSIC, 0);
+		    crashSound = sp.load(contextIn, R.raw.crash, 1);
+		    flyingSound = sp.load(contextIn, R.raw.dino_flying, 1);
+		    scoreSound = sp.load(contextIn, R.raw.score, 1);
 
 			Random r = new Random();
 			mX = r.nextInt(displayHeight);
@@ -239,7 +229,7 @@ public class FlappyActivity extends Activity {
 		// Returns the edge of the top pipe.
 		private int drawPipes(int pipeX, int pipeY, Canvas canvas) {
 			int offset = (pipeRimWidth - pipeBodyWidth) / 2;
-			int bottomPipeNeckY = sandY - pipeY;
+			int bottomPipeNeckY = groundY - pipeY;
 
 			// Bottom pipe
 			canvas.drawBitmap(pipeRim, pipeX, bottomPipeNeckY - pipeRimHeight,
@@ -284,8 +274,8 @@ public class FlappyActivity extends Activity {
 			|| flappyY + flappyHeight > topPipeEdge + Math.round(displayHeight / pipeGapScreenRatio))); // hit his ass
 		}
 
-		boolean hitBottom(int bottomY) {
-		  return flappyY + flappyHeight < bottomY;
+		boolean hitGround() {
+		  return flappyY > groundY;
 		}
 
 		private void drawFlappy(Canvas canvas) {
@@ -350,8 +340,9 @@ public class FlappyActivity extends Activity {
 					(time * pace - (displayWidth / 4 + pipeBodyWidth / 2))
 							/ ((displayWidth + pipeRimWidth) / 2));
 			if (score != prevScore) {
-			  MediaPlayer mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.score);
-	      mediaPlayer.start();
+				sp.play(scoreSound, 100, 100, 1, 0, 1.0f);
+//			  MediaPlayer mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.score);
+//	      mediaPlayer.start();
 			}
 			Paint scorePainter = new Paint();
 			scorePainter.setARGB(220, 255, 70, 70);
@@ -360,11 +351,11 @@ public class FlappyActivity extends Activity {
 					displayHeight / 10, scorePainter);
 
 			// Check if Flappy is dead.
-			if (hitPipe(pipe1X, topPipe1Edge) || hitPipe(pipe2X, topPipe2Edge) || hitBottom(displayHeight - sandY)) {
+			if (!lost && (hitPipe(pipe1X, topPipe1Edge) || hitPipe(pipe2X, topPipe2Edge) || hitGround())) {
 				started = false;
 				lost = true;
-				MediaPlayer mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.crash);
-        mediaPlayer.start();
+
+				sp.play(crashSound, 100, 100, 1, 0, 1.0f);
 			}
 
 			// Move everything.
