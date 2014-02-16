@@ -14,15 +14,12 @@ public final class R {
         public static final int background_height=0x7f050003;
         public static final int background_width=0x7f050002;
         public static final int flappy_height=0x7f050001;
-        /** <dimen name="flappy_width">98dp</dimen>
-    <dimen name="flappy_height">71dp</dimen>
-         */
         public static final int flappy_width=0x7f050000;
+        public static final int ground_height=0x7f050004;
         public static final int pipe_body_height=0x7f050008;
         public static final int pipe_body_width=0x7f050007;
         public static final int pipe_top_height=0x7f050006;
         public static final int pipe_top_width=0x7f050005;
-        public static final int sand_height=0x7f050004;
     }
     public static final class drawable {
         public static final int b128=0x7f020000;

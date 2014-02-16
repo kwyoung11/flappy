@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <!--<dimen name="flappy_width">98dp</dimen>
-    <dimen name="flappy_height">71dp</dimen>-->
     <dimen name="flappy_width">168dp</dimen>
     <dimen name="flappy_height">87dp</dimen>
 
     <dimen name="background_width">373dp</dimen>
     <dimen name="background_height">274dp</dimen>
-    <dimen name="sand_height">144dp</dimen>
+    <dimen name="ground_height">144dp</dimen>
 
-    <dimen name="pipe_top_width">450dp</dimen>
-    <dimen name="pipe_top_height">117dp</dimen>
+    <dimen name="pipe_top_width">512dp</dimen>
+    <dimen name="pipe_top_height">133dp</dimen>
 
     <dimen name="pipe_body_width">244dp</dimen>
     <dimen name="pipe_body_height">1dp</dimen>
-
 </resources>

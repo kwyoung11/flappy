@@ -80,6 +80,7 @@ public class FlappyActivity extends Activity {
 		private static final float pipeBodyScreenRatio = 6f;
 		private static final float pipeGapScreenRatio = 7.5f;
 		private static final int pace = 8;
+		private static final int forgivenessOffset = 15; // How many pixels should you go into the pipe in order to lose.
 		private int pipe1X, pipe2X, pipe1Y, pipe2Y;
 
 		// Flappy.
@@ -125,7 +126,7 @@ public class FlappyActivity extends Activity {
 				started = true;
 			}
 
-			sp.play(flyingSound, 100, 100, 1, 0, 1.0f);
+			sp.play(flyingSound, 20, 20, 1, 0, 1.0f);
 
 			flappyY -= displayHeight / 25;
 			flappyV = -10;
@@ -165,14 +166,14 @@ public class FlappyActivity extends Activity {
 					R.dimen.background_width);
 			int bgOriginalHeight = (int) getResources().getDimension(
 					R.dimen.background_height);
-			int bgSandHeight = (int) getResources().getDimension(
-					R.dimen.sand_height);
+			int bgGroundHeight = (int) getResources().getDimension(
+					R.dimen.ground_height);
 			backgroundHeight = bgOriginalHeight * displayWidth
 					/ bgOriginalWidth;
 			background = Bitmap.createScaledBitmap(backgroundIn, displayWidth,
 					backgroundHeight, false);
-			int sandHeight = bgSandHeight * displayWidth / bgOriginalWidth;
-			groundY = displayHeight - sandHeight;
+			int groundHeight = bgGroundHeight * displayWidth / bgOriginalWidth;
+			groundY = displayHeight - groundHeight;
 
 			// Pipes - Bottom.
 			int pipeTopOriginalWidth = (int) getResources().getDimension(
@@ -274,8 +275,8 @@ public class FlappyActivity extends Activity {
 		}
 
 		boolean hitPipe(int pipeX, int topPipeEdge) {
-			return (flappyX + flappyWidth >= pipeX && flappyX <= pipeX + pipeRimWidth // X in between
-			&& (flappyY < topPipeEdge // hit his head
+			return (flappyX + flappyWidth >= pipeX && flappyX <= pipeX + pipeRimWidth - forgivenessOffset // X in between
+			&& (flappyY < topPipeEdge - forgivenessOffset // hit his head
 			|| flappyY + flappyHeight > topPipeEdge + Math.round(displayHeight / pipeGapScreenRatio))); // hit his ass
 		}
 
@@ -342,12 +343,10 @@ public class FlappyActivity extends Activity {
 			// Draw score.
 			int prevScore = score;
 			score = Math.max(0,
-					(time * pace - (displayWidth / 4 + pipeBodyWidth / 2))
+					(time * pace - (displayWidth / 4 + pipeRimWidth / 4))
 							/ ((displayWidth + pipeRimWidth) / 2));
 			if (score != prevScore) {
 				sp.play(scoreSound, 100, 100, 1, 0, 1.0f);
-//			  MediaPlayer mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.score);
-//	      mediaPlayer.start();
 			}
 			Paint scorePainter = new Paint();
 			scorePainter.setARGB(220, 255, 70, 70);
