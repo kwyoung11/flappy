@@ -1,6 +1,5 @@
 package com.flappyrevenge.Flappy;
 
-import java.io.IOException;
 import java.util.Random;
 
 import android.app.Activity;
@@ -32,12 +31,12 @@ public class FlappyActivity extends Activity {
 
 		RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.frame);
 		final FlappyView bubbleView = new FlappyView(getApplicationContext(),
-				BitmapFactory.decodeResource(getResources(), R.drawable.bird),
+				BitmapFactory.decodeResource(getResources(), R.drawable.dino),
 				BitmapFactory.decodeResource(getResources(),
-						R.drawable.background_bottom),
+						R.drawable.background_bottom_grass),
 				BitmapFactory.decodeResource(getResources(),
-						R.drawable.pipe_rim), BitmapFactory.decodeResource(
-						getResources(), R.drawable.pipe_body));
+						R.drawable.pipe_rim_rocky), BitmapFactory.decodeResource(
+						getResources(), R.drawable.pipe_body_rocky));
 		relativeLayout.addView(bubbleView);
 	}
 
@@ -73,7 +72,7 @@ public class FlappyActivity extends Activity {
 				pipeBodyHeight = 1;
 		private static final float pipeRimScreenRatio = 5.5f;
 		private static final float pipeBodyScreenRatio = 6f;
-		private static final float pipeGapScreenRatio = 6f;
+		private static final float pipeGapScreenRatio = 7f;
 		private static final int pace = 8;
 		private int pipe1X, pipe2X, pipe1Y, pipe2Y;
 
@@ -109,9 +108,9 @@ public class FlappyActivity extends Activity {
 		int mod(int a, int b) {
 			return (a % b + b) % b;
 		}
-		
+
 		public void audioPlayer(String path, String fileName) {
-	    //set up MediaPlayer    
+	    //set up MediaPlayer
 	    MediaPlayer mp = new MediaPlayer();
 
 	    try {
@@ -131,14 +130,13 @@ public class FlappyActivity extends Activity {
 			} else if (!started) {
 				started = true;
 			}
-			
+
 //			audioPlayer("res/raw", "dino_flying");
 //			FlappyAudio audio = new FlappyAudio(getApplicationContext());
 //			audio.playClick();
 			MediaPlayer mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.dino_flying);
 			mediaPlayer.start();
-			
-			
+
 			flappyY -= displayHeight / 25;
 			flappyV = -10;
 			flappyAngle = -30;
@@ -227,7 +225,7 @@ public class FlappyActivity extends Activity {
 
 		private void initializeFlappy() {
 		  time = 0;
-		  
+
 			// Reinitialize flappy's position.
 			flappyY = displayHeight / 2;
 			flappyV = 0;
@@ -285,21 +283,21 @@ public class FlappyActivity extends Activity {
 			&& (flappyY < topPipeEdge // hit his head
 			|| flappyY + flappyHeight > topPipeEdge + Math.round(displayHeight / pipeGapScreenRatio))); // hit his ass
 		}
-		
+
 		boolean hitBottom(int bottomY) {
 		  return flappyY + flappyHeight < bottomY;
 		}
 
 		private void drawFlappy(Canvas canvas) {
 			// Draw background.
-			canvas.drawColor(Color.rgb(112, 196, 206));
+			canvas.drawColor(Color.rgb(161, 232, 234));
 			canvas.drawBitmap(background, 0, displayHeight - backgroundHeight,
 					painter);
 
 			checkPipeEdges();
 			int topPipe1Edge = drawPipes(pipe1X, pipe1Y, canvas);
 			int topPipe2Edge = drawPipes(pipe2X, pipe2Y, canvas);
-			
+
 			// Draw initial game text.
 			if (!started && !lost) {
 			  Paint instructionPainter = new Paint();
@@ -309,7 +307,7 @@ public class FlappyActivity extends Activity {
 	      canvas.drawText("Tap to start", displayWidth / 2,
 	          displayHeight / 3, instructionPainter);
 			}
-			
+
 			// Draw the game over screen text.
 			if (lost) {
 		    // Keeping track of the score.
@@ -321,7 +319,7 @@ public class FlappyActivity extends Activity {
 		      editor.putInt("high_score", highScore);
 		      editor.commit();
 		    }
-			  
+
 		    // Game over message and stuff.
 			  Paint lostPainter = new Paint();
         lostPainter.setARGB(225, 205, 133, 63);
@@ -337,7 +335,7 @@ public class FlappyActivity extends Activity {
         lostPainter.setTextAlign(Align.CENTER);
         canvas.drawText("High score: " + highScore, displayWidth / 2, displayHeight - (displayHeight/8), lostPainter);
 			}
-			
+
 
 			// Draw Flappy.
 			flappyMatrix = new Matrix();

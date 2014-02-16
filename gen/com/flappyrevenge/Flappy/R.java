@@ -14,6 +14,9 @@ public final class R {
         public static final int background_height=0x7f050003;
         public static final int background_width=0x7f050002;
         public static final int flappy_height=0x7f050001;
+        /** <dimen name="flappy_width">98dp</dimen>
+    <dimen name="flappy_height">71dp</dimen>
+         */
         public static final int flappy_width=0x7f050000;
         public static final int pipe_body_height=0x7f050008;
         public static final int pipe_body_width=0x7f050007;
@@ -27,11 +30,16 @@ public final class R {
         public static final int b512=0x7f020002;
         public static final int b64=0x7f020003;
         public static final int background_bottom=0x7f020004;
-        public static final int background_top=0x7f020005;
-        public static final int bird=0x7f020006;
-        public static final int icon=0x7f020007;
-        public static final int pipe_body=0x7f020008;
-        public static final int pipe_rim=0x7f020009;
+        public static final int background_bottom_grass=0x7f020005;
+        public static final int background_top=0x7f020006;
+        public static final int bird=0x7f020007;
+        public static final int bird_icon=0x7f020008;
+        public static final int dino=0x7f020009;
+        public static final int icon=0x7f02000a;
+        public static final int pipe_body=0x7f02000b;
+        public static final int pipe_body_rocky=0x7f02000c;
+        public static final int pipe_rim=0x7f02000d;
+        public static final int pipe_rim_rocky=0x7f02000e;
     }
     public static final class id {
         public static final int frame=0x7f070000;

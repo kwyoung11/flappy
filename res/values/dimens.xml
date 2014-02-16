@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <dimen name="flappy_width">98dp</dimen>
-    <dimen name="flappy_height">71dp</dimen>
+    <!--<dimen name="flappy_width">98dp</dimen>
+    <dimen name="flappy_height">71dp</dimen>-->
+    <dimen name="flappy_width">168dp</dimen>
+    <dimen name="flappy_height">87dp</dimen>
 
     <dimen name="background_width">373dp</dimen>
     <dimen name="background_height">274dp</dimen>
