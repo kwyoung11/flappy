@@ -16,6 +16,7 @@ import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -43,10 +44,10 @@ public class FlappyActivity extends Activity {
 		relativeLayout.addView(bubbleView);
 	}
 
-	@Override
-	protected void onResume() {
-		super.onResume();
-	}
+	// @Override
+	// protected void onResume() {
+	// super.onResume();
+	// }
 
 	// The SurfaceView is a special subclass of View that offers a dedicated
 	// drawing surface within the View hierarchy. The aim is to offer this
@@ -81,12 +82,14 @@ public class FlappyActivity extends Activity {
 		private static final float pipeRimScreenRatio = 5.5f;
 		private static final float pipeBodyScreenRatio = 6f;
 		private static final float pipeGapScreenRatio = 7.5f;
+		private static final int gracePeriod = 10;
 		private static final int pace = 7;
 		private static final int forgivenessOffset = 15; // How many pixels
 															// should you go
 															// into the pipe in
 															// order to lose.
-		private int pipe1X, pipe2X, pipe1Y, pipe2Y;
+		private int pipe1X, pipe2X, pipe1Y = -1, pipe2Y = -1;
+		private int pipeCounter = 0, pipe1Index, pipe2Index;
 
 		// Flappy.
 		private final Bitmap flappy;
@@ -126,7 +129,7 @@ public class FlappyActivity extends Activity {
 				started = true;
 			}
 
-			sp.play(flyingSound, 0.2f, 0.2f, 1, 0, 1.0f);
+			sp.play(flyingSound, 0.02f, 0.02f, 1, 0, 1.0f);
 
 			flappyY -= displayHeight / 25;
 			flappyV = -10;
@@ -219,6 +222,7 @@ public class FlappyActivity extends Activity {
 
 		private void initializeFlappy() {
 			time = 0;
+			pipeCounter = 0;
 
 			// Reinitialize flappy's position.
 			flappyY = displayHeight / 2;
@@ -228,10 +232,21 @@ public class FlappyActivity extends Activity {
 			// Reinitialize pipe X's.
 			pipe1X = displayWidth;
 			pipe2X = displayWidth + (displayWidth + pipeRimWidth) / 2;
+			pipe1Y = -1;
+			pipe2Y = -1;
+		}
+
+		private int getGapHeight(int pipeIndex) {
+			int defaultHeight = Math.round(displayHeight / pipeGapScreenRatio);
+			if (pipeIndex >= gracePeriod) {
+				return defaultHeight;
+			}
+			int shrink = Math.round(defaultHeight / gracePeriod / 2);
+			return defaultHeight * 3 / 2 - shrink * pipeIndex;
 		}
 
 		// Returns the edge of the top pipe.
-		private int drawPipes(int pipeX, int pipeY, Canvas canvas) {
+		private int drawPipes(int pipeX, int pipeY, int pipeIndex, Canvas canvas) {
 			int offset = (pipeRimWidth - pipeBodyWidth) / 2;
 			int bottomPipeNeckY = groundY - pipeY;
 
@@ -245,7 +260,7 @@ public class FlappyActivity extends Activity {
 
 			// Top pipe
 			int topPipeNeckY = bottomPipeNeckY - 2 * pipeRimHeight
-					- Math.round(displayHeight / pipeGapScreenRatio);
+					- getGapHeight(pipeIndex);
 			canvas.drawBitmap(pipeRim, pipeX, topPipeNeckY, painter);
 			Bitmap randomTopBody = Bitmap.createScaledBitmap(pipeBody,
 					pipeBodyWidth, topPipeNeckY, false);
@@ -260,28 +275,39 @@ public class FlappyActivity extends Activity {
 					+ (displayHeight / 10);
 
 			// Pipe 1
-			if (pipe1X <= -pipeRimWidth)
+			if (pipe1X <= -pipeRimWidth) {
 				pipe1X = displayWidth;
-			if (pipe1X >= displayWidth)
+				pipe1Y = -1;
+			}
+			if (pipe1X >= displayWidth && pipe1Y == -1) {
 				pipe1Y = newPipeY;
+				pipe1Index = pipeCounter;
+				pipeCounter++;
+				Log.e("anis", "pipe1: " + Integer.toString(pipeCounter) + " " + Integer.toString(pipe1X));
+			}
 
 			// Pipe 2
-			if (pipe2X <= -pipeRimWidth)
+			if (pipe2X <= -pipeRimWidth) {
 				pipe2X = displayWidth;
-			if (pipe2X >= displayWidth)
+				pipe2Y = -1;
+			}
+			if (pipe2X >= displayWidth && pipe2Y == -1) {
 				pipe2Y = newPipeY;
+				pipe2Index = pipeCounter;
+				pipeCounter++;
+				Log.e("anis", "pipe2: " + Integer.toString(pipeCounter) + " " + Integer.toString(pipe2X));
+			}
 		}
 
-		boolean hitPipe(int pipeX, int topPipeEdge) {
+		boolean hitPipe(int pipeX, int topPipeEdge, int pipeIndex) {
 			return (flappyX + flappyWidth >= pipeX
 					&& flappyX <= pipeX + pipeRimWidth - forgivenessOffset // X
 																			// in
 																			// between
 			&& (flappyY < topPipeEdge - forgivenessOffset // hit his head
-			|| flappyY + flappyHeight > topPipeEdge
-					+ Math.round(displayHeight / pipeGapScreenRatio))); // hit
-																		// his
-																		// ass
+			|| flappyY + flappyHeight > topPipeEdge + getGapHeight(pipeIndex))); // hit
+																					// his
+																					// ass
 		}
 
 		boolean hitGround() {
@@ -295,8 +321,8 @@ public class FlappyActivity extends Activity {
 					painter);
 
 			checkPipeEdges();
-			int topPipe1Edge = drawPipes(pipe1X, pipe1Y, canvas);
-			int topPipe2Edge = drawPipes(pipe2X, pipe2Y, canvas);
+			int topPipe1Edge = drawPipes(pipe1X, pipe1Y, pipe1Index, canvas);
+			int topPipe2Edge = drawPipes(pipe2X, pipe2Y, pipe2Index, canvas);
 
 			// Draw initial game text.
 			if (!started && !lost) {
@@ -363,8 +389,8 @@ public class FlappyActivity extends Activity {
 
 			// Check if Flappy is dead.
 			if (!lost
-					&& (hitPipe(pipe1X, topPipe1Edge)
-							|| hitPipe(pipe2X, topPipe2Edge) || hitGround())) {
+					&& (hitPipe(pipe1X, topPipe1Edge, pipe1Index)
+							|| hitPipe(pipe2X, topPipe2Edge, pipe2Index) || hitGround())) {
 				started = false;
 				lost = true;
 
